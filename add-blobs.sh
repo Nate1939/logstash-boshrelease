@@ -18,13 +18,13 @@ blob_download() {
   fi
 }
 
-LOGSTASH_VERSION=7.10.1
+LOGSTASH_VERSION=7.14.1
 
 if [ ! -f ${DIR}/blobs/logstash/logstash-${LOGSTASH_VERSION}.tar.gz ];then
-    curl -L -J -o logstash-${LOGSTASH_VERSION}.tar.gz https://artifacts.elastic.co/downloads/logstash/logstash-oss-${LOGSTASH_VERSION}-linux-x86_64.tar.gz
+    curl -L -J -o logstash-${LOGSTASH_VERSION}.tar.gz https://artifacts.elastic.co/downloads/logstash/logstash-${LOGSTASH_VERSION}-linux-x86_64.tar.gz
     bosh add-blob --dir=${DIR} logstash-${LOGSTASH_VERSION}.tar.gz logstash/logstash-${LOGSTASH_VERSION}.tar.gz
 fi
 
-blob_download python2.7 https://www.python.org/ftp/python/2.7.15/Python-2.7.15.tgz Python-2.7.15.tgz
+blob_download python3.7 https://www.python.org/ftp/python/3.7.12/Python-3.7.12.tgz Python-3.7.12.tgz
 
 cd -

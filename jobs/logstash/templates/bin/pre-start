@@ -1,5 +1,28 @@
 #!/bin/bash
-set -e
+set -ex
+
+JOBS_LS_CONF="/var/vcap/jobs/logstash/config"
+PACKAGES_LS_CONF="/var/vcap/packages/logstash/config"
+JVM_TMP="/var/vcap/data/logstash/jvm_tmp"
+
+mkdir -p $JVM_TMP
+chown vcap:vcap $JVM_TMP
+chmod 700 $JVM_TMP
+
+### Set heap
+JVM_HEAP_SIZE=$((( $( cat /proc/meminfo | grep MemTotal | awk '{ print $2 }' ) * <%= p("logstash.jvm.heap_size_pct") %> ) / 100 / 1024 ))m
+
+<% if_p('logstash.jvm.heap_size') do |heap_size| %>
+JVM_HEAP_SIZE=<%= heap_size %>
+<% end %>
+
+sed -i 's|-Xms1g|-Xms'$JVM_HEAP_SIZE'|' "$PACKAGES_LS_CONF/jvm.options"
+sed -i 's|-Xmx1g|-Xmx'$JVM_HEAP_SIZE'|' "$PACKAGES_LS_CONF/jvm.options"
+###
+
+###
+sed -i 's|#-Djava.io.tmpdir=$HOME|-Djava.io.tmpdir='$JVM_TMP'|' "$PACKAGES_LS_CONF/jvm.options"
+###
 
 # Delete all configurations
 rm -rf /var/vcap/jobs/logstash/config/conf.d
@@ -21,7 +44,6 @@ EOF
 <% end %>
 
 # Install plugins
-export JAVA_HOME=/var/vcap/packages/java
 export PATH=$PATH:/var/vcap/packages/logstash/bin
 
 rm -rf /var/vcap/packages/logstash/plugins/*
@@ -45,3 +67,25 @@ fi
 
 echo "== Installed plugins =="
 logstash-plugin list
+
+###
+if [[ ! -h $JOBS_LS_CONF/jvm.options ]]; then
+
+    ln -snf "$PACKAGES_LS_CONF/jvm.options" "$JOBS_LS_CONF/jvm.options"
+fi
+###
+
+###
+if [[ ! -h $JOBS_LS_CONF/log4j2.properties ]]; then
+
+    ln -snf "$PACKAGES_LS_CONF/log4j2.properties" "$JOBS_LS_CONF/log4j2.properties"
+fi
+####
+chown -R vcap:vcap /var/vcap/packages/logstash/
+/var/vcap/jobs/logstash/bin/keystore-add.sh
+
+<%- if_p("logstash.tls.private_key") do -%>
+openssl pkcs8 -in /var/vcap/jobs/logstash/config/tls.key -topk8 -nocrypt -out /var/vcap/jobs/logstash/config/tls_p8.key
+chown root:vcap /var/vcap/jobs/logstash/config/tls_p8.key
+chmod 640 /var/vcap/jobs/logstash/config/tls_p8.key
+<% end %>

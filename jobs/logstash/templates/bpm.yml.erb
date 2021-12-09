@@ -1,0 +1,35 @@
+processes:
+- name: logstash
+
+  additional_volumes:
+  - path: /var/vcap/jobs/logstash
+    writable: true
+    allow_executions: true
+  - path: /var/vcap/data/packages/logstash
+    writable: true
+    allow_executions: true
+  - path: /var/vcap/data/logstash/jvm_tmp
+    writable: true
+    allow_executions: true
+
+  executable: /var/vcap/packages/logstash/bin/logstash
+  
+  args:
+  - --path.data=/var/vcap/store/logstash
+  - --path.logs=/var/vcap/sys/log/logstash
+  - --path.settings=/var/vcap/jobs/logstash/config
+  
+  <%- p("logstash.exec.options").each do |exec_option| -%>
+  - <%= exec_option %>
+  <%- end -%>
+
+  persistent_disk: true
+  ephemeral_disk: true
+  
+  env:
+    <% p("logstash.env", {}).each do | k, v | %>
+    <%= k %>: "<%= v %>"
+    <% end %>
+
+  limits:
+    open_files: 65536

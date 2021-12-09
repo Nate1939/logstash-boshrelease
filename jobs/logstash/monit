@@ -1,5 +1,5 @@
 check process logstash
-  with pidfile /var/vcap/sys/run/logstash/logstash.pid
-  start program "/var/vcap/jobs/logstash/bin/ctl start"
-  stop program "/var/vcap/jobs/logstash/bin/ctl stop"
+  with pidfile /var/vcap/sys/run/bpm/logstash/logstash.pid
+  start program "/var/vcap/jobs/bpm/bin/bpm start logstash"
+  stop program "/var/vcap/jobs/bpm/bin/bpm stop logstash"
   group vcap

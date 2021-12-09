@@ -1,8 +1,5 @@
 name: logstash
 blobstore:
-  provider: s3
+  provider: local
   options:
-    bucket_name: logstash-boshrelease
-    region: ap-northeast-1
-    endpoint: https://s3-ap-northeast-1.amazonaws.com
-
+    blobstore_path: ../blobs
